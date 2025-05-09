@@ -43,6 +43,21 @@ All aggregative stats are divided by minutes played attribute to normalize perfo
 ## Training 
 ## Testing 
 ## Visualize
-## Requirements
-```bash
-pip install -r requirements.txt
+
+We visualized the learned latent space of players using PCA and t-SNE, coloring the embeddings by **player position** and **league**.
+
+### Key Observations:
+
+1. **PCA - Position**  
+   In the PCA projection, some local structure emerges between player positions (especially between Defenders and Midfielders), although overall separation is limited. This may reflect overlap in feature representations across roles.
+
+2. **t-SNE - Position**  
+   While there is no sharp clustering by position, local neighborhoods do show a tendency for similar positions (e.g., Midfielders in green, Defenders in blue) to be near each other. This implies that the model encodes soft distinctions between roles, without rigid boundaries.
+
+3. **PCA - League**  
+   No major grouping by league is observed, which suggests the autoencoder generalizes features beyond league-specific styles.
+
+4. **t-SNE - League**  
+   Slight regional groupings by league can be seen (e.g., clusters of La Liga or Premier League players), potentially capturing differences in play style or team roles across competitions.
+
+
