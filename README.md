@@ -58,6 +58,7 @@ We visualized the learned latent space of players using PCA and t-SNE, coloring 
    No major grouping by league is observed, which suggests the autoencoder generalizes features beyond league-specific styles.
 
 4. **t-SNE - League**  
-   Slight regional groupings by league can be seen (e.g., clusters of La Liga or Premier League players), potentially capturing differences in play style or team roles across competitions.
+   Slight regional groupings by league can be seen , potentially capturing differences in play style or team roles across competitions.
+   
 
 
