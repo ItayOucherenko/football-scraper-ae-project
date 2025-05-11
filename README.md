@@ -57,7 +57,7 @@ The trained encoder was then used to transform all records into 16D latent vecto
 Through these evaluations, we found that the Autoencoder captures meaningful structure: players with similar positions tend to appear closer in the embedding space. This confirms that the model did not overfit to noise, and instead learned generalizable patterns from player data.
 
 ## Visualize
-We visualized the learned latent space of players using PCA and t-SNE, coloring the embeddings by **player position** and **league**: 
+We visualized the learned latent space of players using PCA and t-SNE, coloring the embeddings by **player position** and **league**.
 
 ### Key Observations:
 
