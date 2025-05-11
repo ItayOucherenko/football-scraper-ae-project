@@ -1,14 +1,11 @@
 # Football Scraper AE Project
 
 This project scrapes player-level football data from SofaScore, preprocesses it, and applies an Autoencoder to generate player latent representations.
+
 ## Purpose 
 This project scrapes football match statistics from SofaScore, preprocesses the data across multiple games, and trains an autoencoder model to extract meaningful player embeddings. The embeddings are visualized using PCA and t-SNE to reveal player similarity patterns across leagues and positions. 
 The purpose is to fit a model that given past performances, extracts a player form for a fixed timestamp.
 The end goal is to achieve a informative low dimension representation by using the encoders' output for latent space of players' game stats.
-
-
-//add system requierments
-
 
 ## Structure
 - scraping: SofaScore game data scraper
@@ -42,11 +39,13 @@ All aggregative stats are divided by minutes played attribute to normalize perfo
 
 ## Training 
 Once preprocessing was complete, we trained a standard Autoencoder model using PyTorch. The model was designed to compress each player's match-level statistics into a low-dimensional latent vector, and then reconstruct the original input as accurately as possible.
+
 - The input to the model was the normalized player stat vectors from the preprocessing pipeline.
 - We used a symmetric Autoencoder architecture with fully connected layers and ReLU activations.
 - The latent space was set to 16 dimensions.
 - Training was performed with MSE loss and the Adam optimizer.
 - We used early stopping based on reconstruction loss on a validation split.
+- 
 The objective was not only to minimize reconstruction error but also to ensure that the latent space meaningfully represents player traits — enabling player similarity and trend analysis.
 The trained encoder was then used to transform all records into 16D latent vectors, which were later aggregated per player and visualized.
 
@@ -56,8 +55,6 @@ The trained encoder was then used to transform all records into 16D latent vecto
 - Qualitative Evaluation: We reduced the latent space to 2D using PCA and t-SNE to visually inspect how players with similar roles or league affiliations are organized.
 
 Through these evaluations, we found that the Autoencoder captures meaningful structure: players with similar positions tend to appear closer in the embedding space. This confirms that the model did not overfit to noise, and instead learned generalizable patterns from player data.
-
-
 
 ## Visualize
 We visualized the learned latent space of players using PCA and t-SNE, coloring the embeddings by **player position** and **league**: 
