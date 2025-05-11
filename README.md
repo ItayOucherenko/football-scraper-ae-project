@@ -7,6 +7,16 @@ This project scrapes football match statistics from SofaScore, preprocesses the 
 The purpose is to fit a model that given past performances, extracts a player form for a fixed timestamp.
 The end goal is to achieve a informative low dimension representation by using the encoders' output for latent space of players' game stats.
 
+## System Requirements
+To run this project locally, ensure that your environment includes the following:
+- Python 3.8 or higher  
+- Install all required libraries using:
+  ```bash
+  pip install -r requirements.txt
+- The scraper uses Selenium with ChromeDriver. Please ensure you have Google Chrome installed and that the ChromeDriver version matches your browser version.
+
+
+
 ## Structure
 - scraping: SofaScore game data scraper
 - preprocessing: Data cleaning and normalization
