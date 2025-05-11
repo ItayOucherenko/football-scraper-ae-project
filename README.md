@@ -41,10 +41,26 @@ All aggregative stats are divided by minutes played attribute to normalize perfo
 
 
 ## Training 
-## Testing 
-## Visualize
+Once preprocessing was complete, we trained a standard Autoencoder model using PyTorch. The model was designed to compress each player's match-level statistics into a low-dimensional latent vector, and then reconstruct the original input as accurately as possible.
+- The input to the model was the normalized player stat vectors from the preprocessing pipeline.
+- We used a symmetric Autoencoder architecture with fully connected layers and ReLU activations.
+- The latent space was set to 16 dimensions.
+- Training was performed with MSE loss and the Adam optimizer.
+- We used early stopping based on reconstruction loss on a validation split.
+The objective was not only to minimize reconstruction error but also to ensure that the latent space meaningfully represents player traits — enabling player similarity and trend analysis.
+The trained encoder was then used to transform all records into 16D latent vectors, which were later aggregated per player and visualized.
 
-We visualized the learned latent space of players using PCA and t-SNE, coloring the embeddings by **player position** and **league**.
+## Testing 
+ We tested the model by examining both its reconstruction accuracy and the interpretability of the latent space. 
+- Quantitative Evaluation: The model's MSE loss decreased consistently, indicating stable learning of player stats reconstruction.
+- Qualitative Evaluation: We reduced the latent space to 2D using PCA and t-SNE to visually inspect how players with similar roles or league affiliations are organized.
+
+Through these evaluations, we found that the Autoencoder captures meaningful structure: players with similar positions tend to appear closer in the embedding space. This confirms that the model did not overfit to noise, and instead learned generalizable patterns from player data.
+
+
+
+## Visualize
+We visualized the learned latent space of players using PCA and t-SNE, coloring the embeddings by **player position** and **league**: 
 
 ### Key Observations:
 
