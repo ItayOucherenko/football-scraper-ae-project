@@ -1,87 +1,41 @@
-# Football Scraper AE Project
+# Football Analytics: Player Form Representations and Expected Goals
 
-This project scrapes player-level football data from SofaScore, preprocesses it, and applies an Autoencoder to generate player latent representations.
+A two-stage project on Israeli Premier League data. The first stage scrapes player statistics and learns compact player style vectors with an autoencoder. The second stage uses those vectors, together with shot-level features, to predict the probability of a goal and compares the model with the official league xG.
 
-## Purpose 
-This project scrapes football match statistics from SofaScore, preprocesses the data across multiple games, and trains an autoencoder model to extract meaningful player embeddings. The embeddings are visualized using PCA and t-SNE to reveal player similarity patterns across leagues and positions. 
-The purpose is to fit a model that given past performances, extracts a player form for a fixed timestamp.
-The end goal is to achieve a informative low dimension representation by using the encoders' output for latent space of players' game stats.
+## Stage 1: Scraping and player representations
 
-## System Requirements
-To run this project locally, ensure that your environment includes the following:
-- Python 3.8 or higher  
-- Install all required libraries using:
-  ```bash
-  pip install -r requirements.txt
-- The scraper uses Selenium with ChromeDriver. Please ensure you have Google Chrome installed and that the ChromeDriver version matches your browser version.
+- `scraper/`: collects match-level player statistics from SofaScore (Selenium with ChromeDriver).
+- `preprocessing/`: cleans the data, normalizes stats per minute played, and encodes positions.
+- `modeling/`: a fully connected autoencoder (PyTorch, 16-dimensional latent space) and latent vector extraction.
+- `Plotting/`, `materials/`: PCA and t-SNE visualizations of the latent space, colored by position and league.
 
+Setup: `pip install -r requirements.txt`. Google Chrome and a matching ChromeDriver are required for the scraper. Further details are in `Data/Technicalities.md`.
 
+## Stage 2: Expected goals (`xg/`)
 
-## Structure
-- scraping: SofaScore game data scraper
-- preprocessing: Data cleaning and normalization
-- modeling: Autoencoder model, training, and latent extraction
-- notebooks: Project walkthrough and visualizations
-- data: Folder for raw scraped Excel files (not uploaded)
-- outputs: Folder for outputs like final CSVs (not uploaded)
+The notebooks in `xg/notebooks/` run in order:
 
-## General Steps
-1. Scrape match data using sofascore_scraper.py.
-2. Preprocess using preprocessing_pipeline.py.
-3. Train Autoencoder and extract latent vectors.
-4. Visualize and analyze results using project_walkthrough.ipynb.
+1. `01_Data_Preprocessing_ETL.ipynb`: cleans the player statistics and the shot events, and maps player names between the two sources.
+2. `02_Temporal_Feature_Engineering.ipynb`: computes exponential moving averages (EMA) of the 37 player statistics, so each shot uses only matches played before it.
+3. `03_Representation_Learning_and_Fusion.ipynb`: trains an autoencoder on the EMA features and attaches the shooter and goalkeeper style vectors to each shot. Training data is augmented (foot mirroring and small coordinate shifts) on the training split only.
+4. `04_Modeling_and_Evaluation.ipynb`: splits the data chronologically at 2025-01-07, trains baseline and XGBoost, MLP and Ridge models, and evaluates them against the official xG with Brier score, log-loss and AUC.
 
-## Scraping & Preprocessing 
-Before training the autoencoder, raw match statitics are scraped from SofaScore and after that are preprocessed to autoencoder ready input.
+Requirements: Python 3.10 to 3.12, pandas, numpy, scikit-learn, torch, xgboost, openpyxl, joblib, matplotlib, seaborn. On macOS, XGBoost also needs `brew install libomp`.
 
-**Scarping** -
-First, the inputs are start date, end date, Country, league and season. the scraper is built from two main modules, the first one opens SofaScore, and navigates through the site to the specified season and league and collects the URLs of all matches played in that season in between the dates. The second module of the scraper gets all the URLs and iterates all over them and one by one, loads the match and scrapes all the stats to one data frame. lastly all the data concats and converted to one xlsx file.
+### Results
 
-**Important notes**  - the scraper navigates throught the site using HTML elements that might change overtime. It is recommended to first try explore this option in case of bugs. The first module (URL collection) is more prone to crashes from time to time, when scraping large amounnts of data (more than a couple os seasons), we recommend to verify that the URL collection is finished.
+On 2,577 test shots from 2024/25 that match the official league file (89% of the test set), the best model (XGBoost, with player style features) reaches:
 
-**Preprocessing** -
-We identify uniqely each (playerID, date) as a different record.
-Preprocessing takes in the data, keeps the relevant columns, extracts ratings table aside and the goes over the columns so that every important column consists of one number, so rates (succusful/attempted) columns are separated. position, home/away on the field also translated to numbers.
-All aggregative stats are divided by minutes played attribute to normalize performances and finally miuntes played is normalized as well to (0,1]
+| Model | Brier score | AUC |
+|---|---|---|
+| Official league xG | 0.0796 | 0.816 |
+| Best model (XGBoost) | 0.0711 | 0.874 |
 
-**Further** explaination on technical steps and scraping and preprocessing can be found in [here](Data/Technicalities.md)
+That is about 11% lower Brier score than the official xG.
 
+### Data
 
-## Training 
-Once preprocessing was complete, we trained a standard Autoencoder model using PyTorch. The model was designed to compress each player's match-level statistics into a low-dimensional latent vector, and then reconstruct the original input as accurately as possible.
+- **Shot events:** Israeli Premier League shot data from the league administration (ISA), seasons 2023-24 and 2024-25.
+- **Player statistics:** collected with the scraper in Stage 1.
 
-- The input to the model was the normalized player stat vectors from the preprocessing pipeline.
-- We used a symmetric Autoencoder architecture with fully connected layers and ReLU activations.
-- The latent space was set to 16 dimensions.
-- Training was performed with MSE loss and the Adam optimizer.
-- We used early stopping based on reconstruction loss on a validation split.
-- 
-The objective was not only to minimize reconstruction error but also to ensure that the latent space meaningfully represents player traits — enabling player similarity and trend analysis.
-The trained encoder was then used to transform all records into 16D latent vectors, which were later aggregated per player and visualized.
-
-## Testing 
- We tested the model by examining both its reconstruction accuracy and the interpretability of the latent space. 
-- Quantitative Evaluation: The model's MSE loss decreased consistently, indicating stable learning of player stats reconstruction.
-- Qualitative Evaluation: We reduced the latent space to 2D using PCA and t-SNE to visually inspect how players with similar roles or league affiliations are organized.
-
-Through these evaluations, we found that the Autoencoder captures meaningful structure: players with similar positions tend to appear closer in the embedding space. This confirms that the model did not overfit to noise, and instead learned generalizable patterns from player data.
-
-## Visualize
-We visualized the learned latent space of players using PCA and t-SNE, coloring the embeddings by **player position** and **league**.
-
-### Key Observations:
-
-1. **PCA - Position**  
-   In the PCA projection, some local structure emerges between player positions (especially between Defenders and Midfielders), although overall separation is limited. This may reflect overlap in feature representations across roles.
-
-2. **t-SNE - Position**  
-   While there is no sharp clustering by position, local neighborhoods do show a tendency for similar positions (e.g., Midfielders in green, Defenders in blue) to be near each other. This implies that the model encodes soft distinctions between roles, without rigid boundaries.
-
-3. **PCA - League**  
-   No major grouping by league is observed, which suggests the autoencoder generalizes features beyond league-specific styles.
-
-4. **t-SNE - League**  
-   Slight regional groupings by league can be seen , potentially capturing differences in play style or team roles across competitions.
-   
-
-
+The raw data is not included in this repository.
